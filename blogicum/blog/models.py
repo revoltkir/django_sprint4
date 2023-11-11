@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.urls import reverse
 
 User = get_user_model()
@@ -22,7 +22,12 @@ class BaseBlogModel(models.Model):
 
 
 class Post(BaseBlogModel):
-    title = models.CharField('Заголовок', max_length=settings.MAX_FIELD_LENGTH)
+    """Модель публикации."""
+
+    title = models.CharField(
+        'Заголовок',
+        max_length=settings.MAX_FIELD_LENGTH
+    )
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',
@@ -46,7 +51,10 @@ class Post(BaseBlogModel):
         on_delete=models.SET_NULL,
         verbose_name='Местоположение',
     )
-    image = models.ImageField('Картинка у публикации', blank=True)
+    image = models.ImageField(
+        'Картинка публикации',
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'публикация'
@@ -57,11 +65,16 @@ class Post(BaseBlogModel):
         return self.title[:settings.REPRESENTATION_LENGTH]
 
     def get_absolute_url(self):
-        return reverse('blog:post_detail', kwargs={'id': self.pk})
+        return reverse('blog:post_detail', kwargs={'post_id': self.pk})
 
 
 class Category(BaseBlogModel):
-    title = models.CharField('Заголовок', max_length=settings.MAX_FIELD_LENGTH)
+    """Категория публикации."""
+
+    title = models.CharField(
+        'Заголовок',
+        max_length=settings.MAX_FIELD_LENGTH
+    )
     description = models.TextField('Описание')
     slug = models.SlugField(
         'Идентификатор',
@@ -80,8 +93,12 @@ class Category(BaseBlogModel):
 
 
 class Location(BaseBlogModel):
-    name = models.CharField('Название места',
-                            max_length=settings.MAX_FIELD_LENGTH)
+    """Место публикации."""
+
+    name = models.CharField(
+        'Название места',
+        max_length=settings.MAX_FIELD_LENGTH
+    )
 
     class Meta:
         verbose_name = 'местоположение'
@@ -89,3 +106,38 @@ class Location(BaseBlogModel):
 
     def __str__(self) -> str:
         return self.name[:settings.REPRESENTATION_LENGTH]
+
+
+class Comment(models.Model):
+    """Комментарий к публикации."""
+
+    text = models.TextField(verbose_name="Комментарий",)
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        verbose_name='Комментарий',
+    )
+
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор публикации',
+    )
+    created_at = models.DateTimeField(
+        'Добавлено',
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
+        default_related_name = "comments"
+        ordering = ('created_at',)
+
+    def __str__(self):
+        return f'Комментарий пользователя: {self.author}'
+
+    def get_absolute_url(self):
+        return reverse('blog:post_detail',
+                       kwargs={'post_id': self.post.pk})
+
