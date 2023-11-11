@@ -111,7 +111,7 @@ class Location(BaseBlogModel):
 class Comment(models.Model):
     """Комментарий к публикации."""
 
-    text = models.TextField(verbose_name="Комментарий",)
+    text = models.TextField(verbose_name="Комментарий", )
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
@@ -140,4 +140,3 @@ class Comment(models.Model):
     def get_absolute_url(self):
         return reverse('blog:post_detail',
                        kwargs={'post_id': self.post.pk})
-

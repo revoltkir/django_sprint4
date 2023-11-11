@@ -65,7 +65,8 @@ class CategoryPostListView(ListView):
                 .filter(category__slug=self.kwargs['category_slug']))
 
 
-class PostCreateView(LoginRequiredMixin, PostEditMixin, ValidFormMixin, CreateView):
+class PostCreateView(LoginRequiredMixin, PostEditMixin,
+                     ValidFormMixin, CreateView):
     """Создание публикации."""
 
 
@@ -121,8 +122,10 @@ class ProfileUserListView(ListView):
         if self.author == self.request.user:
             queryset = Post.objects.filter(author=self.author)
         else:
-            queryset = super().get_queryset().filter(author=self.author)
-        return queryset.annotate(comment_count=Count('comments')).order_by("-pub_date")
+            queryset = (super().get_queryset()
+                        .filter(author=self.author))
+        return (queryset.annotate(comment_count=Count('comments'))
+                .order_by("-pub_date"))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -131,7 +134,8 @@ class ProfileUserListView(ListView):
         return context
 
 
-class CommentCreateView(LoginRequiredMixin, ValidFormMixin, CommentMixin, CreateView):
+class CommentCreateView(LoginRequiredMixin, ValidFormMixin,
+                        CommentMixin, CreateView):
     """Создание комментария."""
 
     def dispatch(self, request, *args, **kwargs):
@@ -143,8 +147,10 @@ class CommentUpdateView(LoginRequiredMixin, CommentMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         if self.get_object().author != request.user:
-            return redirect('blog:post_detail', self.kwargs['post_id'])
-        get_object_or_404(main_post_queryset().filter(pk=self.kwargs[self.pk_url_kwarg]))
+            return redirect('blog:post_detail',
+                            self.kwargs['post_id'])
+        get_object_or_404(main_post_queryset()
+                          .filter(pk=self.kwargs[self.pk_url_kwarg]))
         return super().dispatch(request, *args, **kwargs)
 
 
