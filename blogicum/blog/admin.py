@@ -5,6 +5,8 @@ from .models import Post, Category, Location, Comment
 
 admin.site.empty_value_display = '-пусто-'
 
+NUMBER_OF_SIGNS = 50
+
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
@@ -31,7 +33,7 @@ class PostAdmin(admin.ModelAdmin):
 
     @admin.display(description="Краткое описание")
     def text_info(self, post: Post):
-        return f'{post.text[:50]}...'
+        return f'{post.text[:NUMBER_OF_SIGNS]}...'
 
     @admin.display(description="Изображение")
     def post_image(self, post: Post):
@@ -41,9 +43,8 @@ class PostAdmin(admin.ModelAdmin):
 
     @admin.display(description="Комментарии")
     def comment_count(self, comment):
-        if comment.comments.count() > 0:
-            return comment.comments.count()
-        return 'No comments'
+        count_comment = comment.comments.count()
+        return 'No comments' if count_comment <= 0 else count_comment
 
 
 @admin.register(Category)

@@ -6,7 +6,11 @@ SECRET_KEY = 'django-insecure-e@lac61@0r5kg781hr8w0$t%wocoqr&!*vdh4t4whd$5jlh)y-
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'www.RevoltReal.pythonanywhere.com',
+    'RevoltReal.pythonanywhere.com'
+]
 
 INSTALLED_APPS = [
     'django_bootstrap5',

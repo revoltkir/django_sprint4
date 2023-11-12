@@ -1,4 +1,5 @@
 from django.db.models import Count
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.timezone import now
 
@@ -31,10 +32,6 @@ class CommentMixin:
     template_name = 'blog/comment.html'
     pk_url_kwarg = "comment_id"
 
-    # def get_success_url(self):
-    #     return reverse('blog:post_detail',
-    #                    kwargs={'post_id': self.kwargs['post_id']})
-
 
 class ValidFormMixin:
     def __init__(self):
@@ -52,10 +49,22 @@ class PostEditMixin:
     model = Post
     form_class = CreatePostForm
     template_name = 'blog/create.html'
-    pk_url_kwarg = 'post_id'
 
     def __init__(self):
         self.request = None
 
     def get_success_url(self):
         return reverse('blog:profile', kwargs={'username': self.request.user})
+
+
+class DispatchMixin:
+    pk_url_kwarg = 'post_id'
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.get_object().author != self.request.user:
+            return redirect('blog:post_detail', self.kwargs[self.pk_url_kwarg])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('blog:post_detail',
+                       kwargs={'post_id': self.kwargs[self.pk_url_kwarg]})

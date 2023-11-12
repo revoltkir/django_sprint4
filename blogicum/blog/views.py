@@ -11,7 +11,7 @@ from django.views.generic import (DetailView, ListView,
 from .forms import CreatePostForm, ProfileUserForm, CommentForm
 from .models import Category, Post, User
 from .utils import (main_post_queryset, comments_main_post_queryset,
-                    CommentMixin, ValidFormMixin, PostEditMixin)
+                    CommentMixin, ValidFormMixin, PostEditMixin, DispatchMixin)
 
 
 class MainPagePostListView(ListView):
@@ -70,16 +70,13 @@ class PostCreateView(LoginRequiredMixin, PostEditMixin,
     """Создание публикации."""
 
 
-class PostUpdateView(LoginRequiredMixin, PostEditMixin, UpdateView):
+class PostUpdateView(LoginRequiredMixin, PostEditMixin,
+                     DispatchMixin, UpdateView):
     """Редактирование публикации."""
 
-    def dispatch(self, request, *args, **kwargs):
-        if self.get_object().author != self.request.user:
-            return redirect('blog:post_detail', self.kwargs[self.pk_url_kwarg])
-        return super().dispatch(request, *args, **kwargs)
 
-
-class PostDeleteView(LoginRequiredMixin, PostEditMixin, DeleteView):
+class PostDeleteView(LoginRequiredMixin, PostEditMixin,
+                     DispatchMixin, DeleteView):
     """Удаление публикации."""
 
     success_url = reverse_lazy('blog:index')
@@ -88,11 +85,6 @@ class PostDeleteView(LoginRequiredMixin, PostEditMixin, DeleteView):
         context = super().get_context_data(**kwargs)
         context['form'] = CreatePostForm(instance=self.object)
         return context
-
-    def dispatch(self, request, *args, **kwargs):
-        if self.get_object().author != self.request.user:
-            return redirect('blog:post_detail', self.kwargs[self.pk_url_kwarg])
-        return super().dispatch(request, *args, **kwargs)
 
 
 class ProfileUserUpdateView(LoginRequiredMixin, UpdateView):
@@ -144,6 +136,7 @@ class CommentCreateView(LoginRequiredMixin, ValidFormMixin,
 
 
 class CommentUpdateView(LoginRequiredMixin, CommentMixin, UpdateView):
+    """Редактирование комментария."""
 
     def dispatch(self, request, *args, **kwargs):
         if self.get_object().author != request.user:
@@ -154,13 +147,6 @@ class CommentUpdateView(LoginRequiredMixin, CommentMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
 
-class CommentDeleteView(LoginRequiredMixin, CommentMixin, DeleteView):
-
-    def dispatch(self, request, *args, **kwargs):
-        if self.get_object().author != request.user:
-            return redirect("blog:post_detail", post_id=self.kwargs["post_id"])
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_success_url(self):
-        return reverse('blog:post_detail',
-                       kwargs={'post_id': self.kwargs['post_id']})
+class CommentDeleteView(LoginRequiredMixin, CommentMixin,
+                        DispatchMixin, DeleteView):
+    """Удаление комментария."""

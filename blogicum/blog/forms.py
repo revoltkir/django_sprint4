@@ -1,8 +1,7 @@
 from django import forms
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from .models import Post, Location, Category, User, Comment
+from .models import Post, User, Comment
 
 
 class CreatePostForm(forms.ModelForm):
@@ -14,14 +13,6 @@ class CreatePostForm(forms.ModelForm):
             timezone.now()
         ).strftime('%Y-%m-%dT%H:%M')
 
-    category = forms.ModelChoiceField(queryset=Category.objects.all(),
-                                      empty_label='Категория не выбрана',
-                                      label='Категории')
-    location = forms.ModelChoiceField(queryset=Location.objects.all(),
-                                      required=False,
-                                      empty_label='Местоположение не выбрано',
-                                      label='Местоположение')
-
     class Meta:
         model = Post
         fields = ['title', 'text', 'image', 'category', 'location', 'pub_date']
@@ -31,12 +22,10 @@ class CreatePostForm(forms.ModelForm):
                 format='%Y-%m-%dT%H:%M', attrs={'type': 'datetime-local'})
         }
 
-    def clean_title(self):
-        title = self.cleaned_data['title']
-        if len(title) > 50:
-            raise ValidationError('Длина превышает 50 символов')
-
-        return title
+    def __init__(self, *args, **kwargs):
+        super(CreatePostForm, self).__init__(*args, **kwargs)
+        self.fields['category'].empty_label = "Категория не выбрана"
+        self.fields['location'].empty_label = "Местоположение не выбрано"
 
 
 class ProfileUserForm(forms.ModelForm):
